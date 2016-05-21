@@ -1,6 +1,5 @@
 var util = require('util');
-
-var bleno = require('../..');
+var bleno = require('bleno');
 
 var BlenoCharacteristic = bleno.Characteristic;
 
