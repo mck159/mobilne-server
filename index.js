@@ -11,7 +11,11 @@ noble.on('stateChange', function(state) {
   }
 });
 
+noble.on('warning', function(msg) {
+  console.log('warning ' + msg);
+});
 noble.on('discover', function(peripheral) {
+    console.log('Discovered');
     noble.stopScanning();
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
