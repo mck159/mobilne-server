@@ -1,15 +1,16 @@
 var async = require('async');
 var noble = require('noble');
+var _ = require('underscore');
 
-var ignoreuuids = process.argv[2] || '';
+var ignoredIdsParam = (process.argv[2] || '');// + ',6b64fb1445cc';
+var specificIdParam = process.argv[3];
 
 function getIgnored() {
-  return ignoreuuids.split(',');
+  return ignoredIdsParam.split(',');
 }
 
 noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
-    console.log('Started scanning');
     noble.startScanning();
   } else {
     console.log('Stopped scanning');
@@ -21,12 +22,12 @@ noble.on('warning', function(msg) {
   console.log('warning ' + msg);
 });
 noble.on('discover', function(peripheral) {
-    console.log('Discovered');
 
-    if(getIgnored().some(id => id == peripheral.id)) {
+    if(specificIdParam && specificIdParam != peripheral.id) {
+      return;
+    } else if(getIgnored().some(id => id == peripheral.id)) {
       return;
     }
-    
     console.log('peripheral with ID ' + peripheral.id + ' found');
 
     var advertisement = peripheral.advertisement;
@@ -37,76 +38,70 @@ noble.on('discover', function(peripheral) {
     var serviceData = advertisement.serviceData;
     var serviceUuids = advertisement.serviceUuids;
 
-    if (localName) {
-      console.log('  Local Name        = ' + localName);
-    }
-
-    if (txPowerLevel) {
-      console.log('  TX Power Level    = ' + txPowerLevel);
-    }
-
-    if (manufacturerData) {
-      console.log('  Manufacturer Data = ' + manufacturerData.toString('hex'));
-    }
-
-    if (serviceData) {
-      console.log('  Service Data      = ' + serviceData);
-    }
-
-    if (serviceUuids) {
-      console.log('  Service UUIDs     = ' + serviceUuids);
-    }
-
     console.log();
 
     explore(peripheral);
     
-    createNewProcess(peripheral.id);
+    createNewProcessIgnorigPeripheral(peripheral.id);
 });
 
 function explore(peripheral) {
-  console.log('services and characteristics:');
-
   peripheral.on('disconnect', function() {
     console.log(peripheral.id + ' disconnected');
+    createNewProcessForSpecificPeripheral(peripheral.id);
   });
 
   peripheral.connect(function(error) {
-    peripheral.discoverServices([], function(error, services) {
-
-      for(service in services) {
-        console.log(service.uuid + ' ' + service.name);
-
-        service.discoverCharacteristics([], function(error, characteristics) {
-          for(characteristic in characteristics) {
-            if(error) {
-              console.log('Characteristic error: ' + error);
-            } else {
-              console.log(characteristic.uuid + ' ' + characteristic.name);
-            }
-          }
-        });
-
-      
-
+    if(error) {
+      console.log(peripheral.id + ' connecting error' + error);
+      return;
     }
-  },
-        function (err) {
-          console.log('Disconnecting ' + err);
-          peripheral.disconnect();
+    console.log(peripheral.id + ' connected');
+    peripheral.discoverAllServicesAndCharacteristics(function(error, services, characteristics) {
+        if(error) {
+          console.log('Error: ' + error);
         }
-      );
-    });
+        
+        getDataForCharacteristic(characteristics, '2a00', deviceName => console.log('Device name: ' + deviceName));
+        getDataForCharacteristic(characteristics, '00002a1900001000800000805f9b34f3', value => console.log('Custom: ' + value));
+        
+      },
+      function (err) {
+        console.log('Disconnecting ' + err);
+        peripheral.disconnect();
+      });
+  });
 }
 
-function createNewProcess(ignored) {
-  ignoreuuids += ',' + ignored;
+function getDataForCharacteristic(characteristics, characteristicId, callback) {
+  var characteristic = _.find(characteristics, charact => charact.uuid.toString() == characteristicId);
+  if(characteristic) {
+    characteristic.read(function(error, data) {
+        callback(data);
+    });
+  }
+}
+
+function createNewProcessIgnorigPeripheral(ignored) {
+  createNewProcess(ignored, null);
+}
+
+function createNewProcessForSpecificPeripheral(specific) {
+  createNewProcess(null, specific);
+}
+
+function createNewProcess(ignored, specific) {
+  if(ignored) {
+    ignoredIdsParam += ',' + ignored;
+  }
+  
+  //console.log('Create process with args ' + ignoredIdsParam);
   
   const spawn = require('child_process').spawn;
-  const ls = spawn('node', ['index.js', ignoreuuids]);
+  const ls = spawn('node', ['index.js', ignoredIdsParam, specific]);
 
   ls.stdout.on('data', (data) => {
-    console.log(data);
+    console.log(`${data}`);
   });
 
   ls.stderr.on('data', (data) => {
