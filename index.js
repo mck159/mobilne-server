@@ -4,7 +4,7 @@ var noble = require('noble');
 noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
     console.log('Started scanning');
-    noble.startScanning(;
+    noble.startScanning();
   } else {
     console.log('Stopped scanning');
     noble.stopScanning();
@@ -18,6 +18,12 @@ noble.on('discover', function(peripheral) {
     console.log('Discovered');
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
+
+    if(peripheral.id == process.argv[2]) {
+      console.log('this device is already connected');
+      return;
+    }
+
     var advertisement = peripheral.advertisement;
 
     var localName = advertisement.localName;
@@ -50,7 +56,7 @@ noble.on('discover', function(peripheral) {
 
     explore(peripheral);
     
-    createNewProcess();
+    //createNewProcess();
 });
 
 function explore(peripheral) {
