@@ -4,7 +4,7 @@ var noble = require('noble');
 noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
     console.log('Started scanning');
-    noble.startScanning();
+    noble.startScanning([], true);
   } else {
     console.log('Stopped scanning');
     noble.stopScanning();
@@ -16,7 +16,7 @@ noble.on('warning', function(msg) {
 });
 noble.on('discover', function(peripheral) {
     console.log('Discovered');
-    noble.startScanning();
+    noble.startScanning([], true);
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
     var advertisement = peripheral.advertisement;
