@@ -1,7 +1,7 @@
 var async = require('async');
 var noble = require('noble');
 
-var ignoreuuids = process.argv[2];
+var ignoreuuids = process.argv[2] || '';
 
 function getIgnored() {
   return ignoreuuids.split(',');
