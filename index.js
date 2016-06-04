@@ -23,12 +23,11 @@ noble.on('warning', function(msg) {
 noble.on('discover', function(peripheral) {
     console.log('Discovered');
 
-    console.log('peripheral with ID ' + peripheral.id + ' found');
-
     if(getIgnored().some(id => id == peripheral.id)) {
-      console.log('this device is already connected');
       return;
     }
+    
+    console.log('peripheral with ID ' + peripheral.id + ' found');
 
     var advertisement = peripheral.advertisement;
 
@@ -175,7 +174,7 @@ function createNewProcess(ignored) {
   const ls = spawn('node', ['index.js', ignoreuuids]);
 
   ls.stdout.on('data', (data) => {
-    console.log(`stdout: ${data}`);
+    console.log(data);
   });
 
   ls.stderr.on('data', (data) => {
