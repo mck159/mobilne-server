@@ -1,6 +1,12 @@
 var async = require('async');
 var noble = require('noble');
 
+var ignoreuuids = process.argv[2];
+
+function getIgnored() {
+  return ignoreuuids.split(',');
+}
+
 noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
     console.log('Started scanning');
@@ -19,7 +25,7 @@ noble.on('discover', function(peripheral) {
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
 
-    if(peripheral.id == process.argv[2]) {
+    if(getIgnored().some(id => id == peripheral.id)) {
       console.log('this device is already connected');
       return;
     }
@@ -56,7 +62,7 @@ noble.on('discover', function(peripheral) {
 
     explore(peripheral);
     
-    //createNewProcess();
+    createNewProcess(peripheral.id);
 });
 
 function explore(peripheral) {
@@ -145,7 +151,8 @@ function explore(peripheral) {
                 ]);
               },
               function(error) {
-                console.log('Characteristic error: ' + error);
+                if(error)
+                  console.log('Characteristic error: ' + error);
                 serviceIndex++;
                 callback();
               }
@@ -161,9 +168,11 @@ function explore(peripheral) {
   });
 }
 
-function createNewProcess() {
+function createNewProcess(ignored) {
+  ignoreuuids += ',' + ignored;
+  
   const spawn = require('child_process').spawn;
-  const ls = spawn('node', ['index.js']);
+  const ls = spawn('node', ['index.js', ignoreuuids]);
 
   ls.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);
