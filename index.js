@@ -2,8 +2,12 @@ var async = require('async');
 var noble = require('noble');
 var _ = require('underscore');
 
-var ignoredIdsParam = (process.argv[2] || '');// + ',6b64fb1445cc';
+var restClient = require('./restClient.js');
+
+var ignoredIdsParam = process.argv[2] || '';
 var specificIdParam = process.argv[3];
+
+var connectedDevices = [];
 
 function getIgnored() {
   return ignoredIdsParam.split(',');
@@ -48,6 +52,7 @@ noble.on('discover', function(peripheral) {
 function explore(peripheral) {
   peripheral.on('disconnect', function() {
     console.log(peripheral.id + ' disconnected');
+    restClient.sendDisconnectedInfo(peripheral.id);
     createNewProcessForSpecificPeripheral(peripheral.id);
   });
 
@@ -62,8 +67,23 @@ function explore(peripheral) {
           console.log('Error: ' + error);
         }
         
-        getDataForCharacteristic(characteristics, '2a00', deviceName => console.log('Device name: ' + deviceName));
-        getDataForCharacteristic(characteristics, '00002a1900001000800000805f9b34f3', value => console.log('Custom: ' + value));
+        var deviceInfo = {
+          uuid: peripheral.id
+        };
+        getDataForCharacteristic(characteristics, '2a00', deviceName => {
+          deviceInfo.peripheralName = deviceName;
+          console.log('Device name: ' + deviceName);
+          getDataForCharacteristic(characteristics, '00002a1900001000800000805f9b34f3', value => { 
+            var values = value.split(':');
+            deviceInfo.peripheralManufacturer = value[0];
+            deviceInfo.peripheralModel = value[1];
+            deviceInfo.peripheralIMEI = value[2];
+            console.log('Custom: ' + value);
+            
+            restClient.sendConnectedInfo(deviceInfo);
+          });
+          
+        });
         
       },
       function (err) {
@@ -77,7 +97,7 @@ function getDataForCharacteristic(characteristics, characteristicId, callback) {
   var characteristic = _.find(characteristics, charact => charact.uuid.toString() == characteristicId);
   if(characteristic) {
     characteristic.read(function(error, data) {
-        callback(data);
+        callback(data.toString());
     });
   }
 }
