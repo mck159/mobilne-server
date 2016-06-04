@@ -6,8 +6,8 @@ noble.on('stateChange', function(state) {
     console.log('Started scanning');
     noble.startScanning();
   } else {
-    noble.stopScanning();
     console.log('Stopped scanning');
+    noble.stopScanning();
   }
 });
 
