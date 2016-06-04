@@ -16,7 +16,7 @@ noble.on('warning', function(msg) {
 });
 noble.on('discover', function(peripheral) {
     console.log('Discovered');
-    noble.stopScanning();
+    //noble.stopScanning();
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
     var advertisement = peripheral.advertisement;
@@ -56,7 +56,7 @@ function explore(peripheral) {
   console.log('services and characteristics:');
 
   peripheral.on('disconnect', function() {
-    process.exit(0);
+    console.log(peripheral.name + ' disconnected');
   });
 
   peripheral.connect(function(error) {
