@@ -145,7 +145,7 @@ function explore(peripheral) {
                 ]);
               },
               function(error) {
-                console.log('Characteristic error: ' + err);
+                console.log('Characteristic error: ' + error);
                 serviceIndex++;
                 callback();
               }
