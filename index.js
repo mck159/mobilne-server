@@ -145,6 +145,7 @@ function explore(peripheral) {
                 ]);
               },
               function(error) {
+                console.log('Characteristic error: ' + err);
                 serviceIndex++;
                 callback();
               }
@@ -152,6 +153,7 @@ function explore(peripheral) {
           });
         },
         function (err) {
+          console.log('Disconnecting ' + err);
           peripheral.disconnect();
         }
       );
