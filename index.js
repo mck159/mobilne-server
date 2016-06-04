@@ -4,7 +4,7 @@ var noble = require('noble');
 noble.on('stateChange', function(state) {
   if (state === 'poweredOn') {
     console.log('Started scanning');
-    noble.startScanning([], true);
+    noble.startScanning(;
   } else {
     console.log('Stopped scanning');
     noble.stopScanning();
@@ -16,7 +16,6 @@ noble.on('warning', function(msg) {
 });
 noble.on('discover', function(peripheral) {
     console.log('Discovered');
-    noble.startScanning([], true);
 
     console.log('peripheral with ID ' + peripheral.id + ' found');
     var advertisement = peripheral.advertisement;
@@ -50,6 +49,8 @@ noble.on('discover', function(peripheral) {
     console.log();
 
     explore(peripheral);
+    
+    createNewProcess();
 });
 
 function explore(peripheral) {
@@ -149,6 +150,23 @@ function explore(peripheral) {
         }
       );
     });
+  });
+}
+
+function createNewProcess() {
+  const spawn = require('child_process').spawn;
+  const ls = spawn('node', ['index.js']);
+
+  ls.stdout.on('data', (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  ls.stderr.on('data', (data) => {
+    console.log(`stderr: ${data}`);
+  });
+
+  ls.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
   });
 }
 
