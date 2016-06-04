@@ -75,12 +75,16 @@ function explore(peripheral) {
           console.log('Device name: ' + deviceName);
           getDataForCharacteristic(characteristics, '00002a1900001000800000805f9b34f3', value => { 
             var values = value.split(':');
-            deviceInfo.peripheralManufacturer = value[0];
-            deviceInfo.peripheralModel = value[1];
-            deviceInfo.peripheralIMEI = value[2];
+            deviceInfo.peripheralManufacturer = values[0];
+            deviceInfo.peripheralModel = values[1];
             console.log('Custom: ' + value);
             
-            restClient.sendConnectedInfo(deviceInfo);
+            getDataForCharacteristic(characteristics, '00002a1900001000800000805f9b34f7', value => {
+              deviceInfo.peripheralIMEI = value;
+              console.log('Custom: ' + value);
+              restClient.sendConnectedInfo(deviceInfo);
+            
+            });
           });
           
         });

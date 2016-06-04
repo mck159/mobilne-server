@@ -9,7 +9,7 @@ var connectedDevices = [];
 
 exports.sendConnectedInfo = function(deviceInfo) {
   console.log('Sending connected info: ' + JSON.stringify(deviceInfo));
-  connectedDevices.add(deviceInfo);
+  connectedDevices.push(deviceInfo);
   sendData('/peripheralData/connected', deviceInfo);
 };
 
@@ -25,11 +25,11 @@ function sendData(path, jsonData) {
   var options = {
     host: _url,
     port: 8080,
-    path: '/login',
+    path: path,
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(data)
+        'Content-Length': Buffer.byteLength(jsonData)
     }
   };
 
@@ -40,6 +40,6 @@ function sendData(path, jsonData) {
       });
   });
 
-  req.write(jsonData);
+  req.write(JSON.stringify(jsonData));
   req.end();
 }
