@@ -3,7 +3,7 @@ var _ = require('underscore');
 
 var exports = module.exports = {};
 
-var _url = 'http://192.168.137.58';
+var _url = 'https://morning-journey-48476.herokuapp.com';
 
 var connectedDevices = [];
 
@@ -24,7 +24,7 @@ exports.sendDisconnectedInfo = function(deviceId) {
 function sendData(path, jsonData) {
   var options = {
     host: _url,
-    port: 8080,
+    port: 443,
     path: path,
     method: 'POST',
     headers: {
